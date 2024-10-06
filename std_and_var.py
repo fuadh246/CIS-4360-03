@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Fetch historical stock data for Apple (AAPL)
-stock_data = yf.download('AAPL', start='2023-01-01', end='2023-12-31')
+stock_data = yf.download('AAPL', start='2024-01-01', end='2024-10-1')
 
 # Calculate daily returns
 stock_data['Daily Return'] = stock_data['Adj Close'].pct_change()
