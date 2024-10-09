@@ -164,4 +164,4 @@ cython_debug/
 .DS_Store
 
 /data/daily/
-# /data/sqlite/Equity.db
+/data/sqlite/
