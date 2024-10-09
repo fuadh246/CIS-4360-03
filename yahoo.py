@@ -174,5 +174,5 @@ def run():
         save_daily_data_to_sqlite(opt, opt.output_dir, list_of_tickers)
     
 if __name__ == "__main__":
-    # _test()
+    _test()
     run()
