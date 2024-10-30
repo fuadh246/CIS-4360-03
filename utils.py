@@ -111,7 +111,6 @@ def _test():
     yfinance = MyYahooFinancials(symbol, freq)
 
     yfinance.load_latest_data()
-    print(yfinance.load_latest_data())
 
     # example of how to get some of the data
     print("Total Revenue: ", yfinance.get_income_statement_data('totalRevenue'))    

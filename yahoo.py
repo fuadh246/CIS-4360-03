@@ -48,7 +48,7 @@ def download_data_to_csv(opt, list_of_tickers):
     # Iterate through the list of tickers
     for ticker in list_of_tickers:
         # Call get_daily_from_yahoo for each ticker
-        df = get_daily_from_yahoo(ticker, opt.start_date, opt.end_date)
+        df = get_daily_from_yahoo(ticker, opt.start_date, "2024-10-08")
         if df is not None:
             # Save the DataFrame to a CSV file in the output_dir
             output_file = os.path.join(opt.output_dir, f"{ticker}_daily.csv")
