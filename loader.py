@@ -95,7 +95,7 @@ class Loader(object):
         # cursor.execute(sql_delete, (ticker,))
         cursor.execute(sql_delete, (df['Ticker'][0],))
         
-        # Insert new data
+        # insert new data
         sql_insert = f"""INSERT INTO {db_table} 
                         (Ticker, AsOfDate, Open, High, Low, Close, Volume, Dividend, StockSplits) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"""
@@ -127,7 +127,7 @@ class Loader(object):
         for ticker in list_of_tickers:
             file_name = os.path.join(daily_file_dir, f"{ticker}_daily.csv")
             print(file_name)
-        # Check if the file exists
+        # check if the file exists
             if os.path.isfile(file_name):
                 self.csv_to_table(file_name, fields_map, db_table)
             else:
@@ -144,13 +144,13 @@ class Loader(object):
         fields_map = {
             'Ticker': 'Ticker',
             'AsOfDate': 'AsOfDate',
-            'Close': 'Close',
+            'Close':'Close',
             'Volume': 'Volume',
             'SMA_10': 'SMA10',
             'SMA_20': 'SMA20',
-            'SMA_50': 'SMA50',
-            'SMA_200': 'SMA200',
-            'RSI': 'RSI',
+            'SMA_50':'SMA50',
+            'SMA_200':'SMA200',
+            'RSI':'RSI',
             'MACDline': 'MACDline',
             'MACDsignal': 'MACDsignal',
             'BBupperBand': 'BBupperBand',
@@ -158,12 +158,12 @@ class Loader(object):
             'BBlowerBand': 'BBlowerBand',
             'ADX': 'ADX',
             'DMP': 'DMP',
-            'DMN': 'DMN'
+            'DMN':'DMN'
         }
         input_df.columns = [fields_map.get(x, x) for x in input_df.columns]
-        # Filter necessary columns
+        # filter necessary columns
         upload_df = input_df[list(fields_map.values())]
-        # Delete existing records for this ticker
+
         sql_delete = f"DELETE FROM {db_table} WHERE Ticker = ?"
         cursor.execute(sql_delete, (upload_df['Ticker'].iloc[0],))
         
@@ -176,13 +176,11 @@ class Loader(object):
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         
-        # Convert the DataFrame to a list of tuples for insertion
+        # convert the dataFrame to a list of tuples for insertion
         data_tuples = [tuple(row) for row in upload_df.to_records(index=False)]
         
-        # Execute batch insert
         cursor.executemany(sql_insert, data_tuples)
         
-        # Commit changes
         self.db_connection.commit()
         print(f"Inserted data for {input_df.name} into {db_table}")
         
