@@ -36,6 +36,7 @@ class Stock(object):
         self.sma_periods = sma_periods
         
         self.yfin = MyYahooFinancials(ticker, freq)
+        
 
     #######################   The following methods are for getting pricing data 
     
@@ -47,14 +48,15 @@ class Stock(object):
             df['AsOfDate'] = df['AsOfDate'].apply(lambda x: datetime.datetime.strptime(x[:10], "%Y-%m-%d").date())
 
             # filter data between start and end date
-            df = df[ df.AsOfDate >= start_date ]
-            df = df[ df.AsOfDate <= end_date ]
+            df = df[ df.AsOfDate >= datetime.datetime.strptime(start_date, "%Y-%m-%d").date()]
+            df = df[ df.AsOfDate <= datetime.datetime.strptime(end_date, "%Y-%m-%d").date()]
 
             # create an index based on the AsOfDate column
             df['Date'] = df.AsOfDate
             df = df.set_index('Date')
             
             self.ohlcv_df = df
+            self.ohlcv_df.name = self.ticker
             return(df)
             
         except Exception as e:
@@ -89,7 +91,7 @@ class Stock(object):
         slow= 26
         signal= 9
         macd = ta.macd(self.ohlcv_df['Close'], fast=fast, slow=slow, signal=signal)
-        print(macd)
+
         self.ohlcv_df['MACDline'] = macd[f'MACD_{fast}_{slow}_{signal}']
         self.ohlcv_df['MACDsignal'] = macd[f'MACDs_{fast}_{slow}_{signal}']       
         

@@ -23,7 +23,7 @@ import yfinance as yf
 
 import option
 
-# from stock import Stock
+from stock import Stock
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -138,10 +138,54 @@ class Loader(object):
     def save_daily_TA_data_to_sqlite(self, input_df):
         # On accepting a dataframe with columns, Ticker, AsOfDate, Close, Volume, SMA10, ...
         # upload the TA values to the EquityTechnicalIndicators table
-        # TODO:
-    
-        # end TODO
-        pass
+        db_table = "EquityTechnicalIndicators"
+        cursor = self.db_connection.cursor()
+        
+        fields_map = {
+            'Ticker': 'Ticker',
+            'AsOfDate': 'AsOfDate',
+            'Close': 'Close',
+            'Volume': 'Volume',
+            'SMA_10': 'SMA10',
+            'SMA_20': 'SMA20',
+            'SMA_50': 'SMA50',
+            'SMA_200': 'SMA200',
+            'RSI': 'RSI',
+            'MACDline': 'MACDline',
+            'MACDsignal': 'MACDsignal',
+            'BBupperBand': 'BBupperBand',
+            'BBmiddleBand': 'BBmiddleBand',
+            'BBlowerBand': 'BBlowerBand',
+            'ADX': 'ADX',
+            'DMP': 'DMP',
+            'DMN': 'DMN'
+        }
+        input_df.columns = [fields_map.get(x, x) for x in input_df.columns]
+        # Filter necessary columns
+        upload_df = input_df[list(fields_map.values())]
+        # Delete existing records for this ticker
+        sql_delete = f"DELETE FROM {db_table} WHERE Ticker = ?"
+        cursor.execute(sql_delete, (upload_df['Ticker'].iloc[0],))
+        
+        # insert statement
+        sql_insert = f"""
+            INSERT INTO {db_table} (
+                Ticker, AsOfDate, Close, Volume, SMA10, SMA20, SMA50, SMA200,
+                RSI, MACDline, MACDsignal, BBupperBand, BBmiddleBand, BBlowerBand,
+                ADX, DMP, DMN
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        
+        # Convert the DataFrame to a list of tuples for insertion
+        data_tuples = [tuple(row) for row in upload_df.to_records(index=False)]
+        
+        # Execute batch insert
+        cursor.executemany(sql_insert, data_tuples)
+        
+        # Commit changes
+        self.db_connection.commit()
+        print(f"Inserted data for {input_df.name} into {db_table}")
+        
 
     def calc_and_upload_TA_indicators(self, list_of_tickers):
         '''
@@ -151,19 +195,14 @@ class Loader(object):
         3. upload the data in the dataframe to the EquityTechnicalIndicators table
 
         '''
-        # TODO
-        #for ticker in list_of_tickers:
-        #    stock = Stock(self.opt, self.db_connection)
+        for ticker in list_of_tickers:
+           stock = Stock(self.opt, self.db_connection, ticker=ticker)
 
-        #    stock.get_daily_hist_price_from_db(self.opt.start_date, self.opt.end_date)
-        #    ....
-        # 
-        #    df = stock.ohlcv_df
-        #    self.save_daily_TA_data_to_sqlite(df)
+           stock.get_daily_hist_price_from_db(self.opt.start_date, self.opt.end_date)
+           stock.calc_all_TA_indicators()
+           df = stock.ohlcv_df
+           self.save_daily_TA_data_to_sqlite(df)
 
-        # end TODO
-        pass
-            
         
         
 def run():
@@ -195,14 +234,14 @@ def run():
     print(f"Download data to {opt.data_dir} directory")
 
     # Turn the flag from 1 to 0 after you are done with testing for faster development
-    if 1:
+    if 0:
         # download data to csv files
         loader.download_data_to_csv(list_of_tickers)
 
-    if 1:
+    if 0:
         loader.save_daily_data_to_sqlite(opt.output_dir, list_of_tickers)
 
-    if 0:
+    if 1:
         loader.calc_and_upload_TA_indicators(list_of_tickers)
     
 if __name__ == "__main__":
